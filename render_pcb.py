@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # Licensed under the GPL v3, see LICENSE-GPLv3.md
 #
-# Fully automated rendering of a PCB from Gerber files (into PNGs).
+# Fully automated rendering of a PCB from Gerber files into PNGs.
+# Optionally, rendering to SVG is also possible,
+# but the result is very poor!
 
 import os, shutil
 from gerber import common
@@ -19,12 +21,14 @@ OFFSET = 20
 @click.argument('gerbers_path')
 @click.argument('render_base_path')
 @click.argument('show', required=0)
-def render_pcb(gerbers_path, render_base_path, show=False):
-    """Renders Gerber files into PNG images
+@click.argument('png', required=0)
+def render_pcb(gerbers_path, render_base_path, show=False, png=True):
+    """Renders Gerber files into images (PNG by default, as SVG delivers poor results)
 
     GERBERS_PATH - Could be a folder or a zip file containing the Gerber files
     RENDER_BASE_PATH - Base-path of the PNGs to be generated; suffixes will be "-front.png", "-back.png", "-front-back.png"
-    SHOW - Whether to show the generated front&bakc render in the end (default: False)
+    SHOW - Whether to show the generated front&back render in the end (default: False)
+    PNG - Whether to render to PNG or SVG. NOTE: SVG output is very buggy, at least with text! (default: True (=> PNG))
     """
     del_tmp_folder = False
     extract_dir = ''
@@ -37,9 +41,13 @@ def render_pcb(gerbers_path, render_base_path, show=False):
         gerbers_path = extract_dir
         del_tmp_folder = True
 
-    img_front_back_path = render_base_path + '-front-back.png'
-    img_front_path = render_base_path + '-front.png'
-    img_back_path = render_base_path + '-back.png'
+    if png:
+        img_file_ext = 'png'
+    else:
+        img_file_ext = 'svg'
+    img_front_back_path = render_base_path + '-front-back.' + img_file_ext
+    img_front_path = render_base_path + '-front.' + img_file_ext
+    img_back_path = render_base_path + '-back.' + img_file_ext
 
     drill = None
 
@@ -80,7 +88,7 @@ def render_pcb(gerbers_path, render_base_path, show=False):
     if drill != None:
         ctx.render_layer(drill)
 
-    # Write png file
+    # Write the front image file
     ctx.dump(img_front_path)
 
     # Clear the drawing
@@ -93,12 +101,12 @@ def render_pcb(gerbers_path, render_base_path, show=False):
     if drill != None:
         ctx.render_layer(drill, settings=RenderSettings(mirror=True))
 
-    # Write png file
+    # Write the back image file
     ctx.dump(img_back_path)
 
     ctx.clear()
 
-    # Concatenate
+    # Concatenate the front and back images into a third image
     front = Image.open(img_front_path)
     back = Image.open(img_back_path)
     render = Image.new('RGB', (front.width, front.height * 2 + OFFSET))
