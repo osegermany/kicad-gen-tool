@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# Licensed under the GPL v3, see LICENSE-GPLv3.md
+#
+# Fully automated rendering of a PCB from Gerber files (into PNGs).
+
 import os, shutil
 from gerber import common
 from gerber.layers import PCBLayer, DrillLayer
@@ -6,59 +11,63 @@ from gerber.render.cairo_backend import GerberCairoContext
 from PIL import Image
 import click
 
-# Render
+# Render parameters
 SCALE = 25
 OFFSET = 20
 
 @click.command()
-@click.argument('input_path')
-def render_pcb(input_path):
-    """Render Gerber Files into a PNG Image
+@click.argument('gerbers_path')
+@click.argument('render_base_path')
+@click.argument('show', required=0)
+def render_pcb(gerbers_path, render_base_path, show=False):
+    """Renders Gerber files into PNG images
 
-    INPUT_PATH  - Could be a folder or a zip file containing the Gerber Files
+    GERBERS_PATH - Could be a folder or a zip file containing the Gerber files
+    RENDER_BASE_PATH - Base-path of the PNGs to be generated; suffixes will be "-front.png", "-back.png", "-front-back.png"
+    SHOW - Whether to show the generated front&bakc render in the end (default: False)
     """
     del_tmp_folder = False
     extract_dir = ''
 
-    if os.path.isfile(input_path):
-        if not input_path.endswith('.zip'):
-            click.BadParameter('Wrong INPUT_PATH') # exit
-        extract_dir = os.path.join(os.path.dirname(input_path), 'tmp')
-        shutil.unpack_archive(input_path, extract_dir, 'zip')
-        input_path = extract_dir
+    if os.path.isfile(gerbers_path):
+        if not gerbers_path.endswith('.zip'):
+            click.BadParameter('Wrong GERBERS_PATH') # exit
+        extract_dir = os.path.join(os.path.dirname(gerbers_path), 'tmp')
+        shutil.unpack_archive(gerbers_path, extract_dir, 'zip')
+        gerbers_path = extract_dir
         del_tmp_folder = True
 
-    output_path = os.path.join(os.path.dirname(input_path), 'pcb.png')
+    img_front_back_path = render_base_path + '-front-back.png'
+    img_front_path = render_base_path + '-front.png'
+    img_back_path = render_base_path + '-back.png'
 
-    img_front_path = os.path.join(input_path, 'front.png')
-    img_bottom_path = os.path.join(input_path, 'bottom.png')
+    drill = None
 
-    for file in os.listdir(input_path):
-
-        real_path = os.path.join(input_path, file)
+    for gerber_file in os.listdir(gerbers_path):
+        real_path = os.path.join(gerbers_path, gerber_file)
 
         if not os.path.isfile(real_path):
             continue
 
         # Drill
-        if file.endswith('.drl'):
+        if gerber_file.endswith('.drl'):
             drill = DrillLayer(real_path, common.read(real_path))
 
         # Front
-        elif file.endswith('-F_Cu.gbr'):
+        elif gerber_file.endswith('-F_Cu.gbr'):
             copper_front = PCBLayer(real_path, 'top', common.read(real_path))
-        elif file.endswith('-F_Mask.gbr'):
+        elif gerber_file.endswith('-F_Mask.gbr'):
             mask_front = PCBLayer(real_path, 'topmask', common.read(real_path))
-        elif file.endswith('-F_SilkS.gbr'):
+        elif gerber_file.endswith('-F_SilkS.gbr'):
             silk_front = PCBLayer(real_path, 'topsilk', common.read(real_path))
 
         # Bottom
-        elif file.endswith('-B_Cu.gbr'):
-            copper_bottom = PCBLayer(real_path, 'bottom', common.read(real_path))
-        elif file.endswith('-B_Mask.gbr'):
-            mask_bottom = PCBLayer(real_path, 'bottommask', common.read(real_path))
-        elif file.endswith('-B_SilkS.gbr'):
-            silk_bottom = PCBLayer(real_path, 'bottomsilk', common.read(real_path))
+        elif gerber_file.endswith('-B_Cu.gbr'):
+            copper_back = PCBLayer(real_path, 'back', common.read(real_path))
+        elif gerber_file.endswith('-B_Mask.gbr'):
+            mask_back = PCBLayer(real_path, 'backmask', common.read(real_path))
+        elif gerber_file.endswith('-B_SilkS.gbr'):
+            silk_back = PCBLayer(real_path, 'backsilk', common.read(real_path))
         else:
             continue
 
@@ -68,7 +77,8 @@ def render_pcb(input_path):
     ctx.render_layer(copper_front)
     ctx.render_layer(mask_front)
     ctx.render_layer(silk_front)
-    ctx.render_layer(drill)
+    if drill != None:
+        ctx.render_layer(drill)
 
     # Write png file
     ctx.dump(img_front_path)
@@ -76,25 +86,27 @@ def render_pcb(input_path):
     # Clear the drawing
     ctx.clear()
 
-    # Render bottom layers
-    ctx.render_layer(copper_bottom)
-    ctx.render_layer(mask_bottom)
-    ctx.render_layer(silk_bottom)
-    ctx.render_layer(drill, settings=RenderSettings(mirror=True))
+    # Render back layers
+    ctx.render_layer(copper_back)
+    ctx.render_layer(mask_back)
+    ctx.render_layer(silk_back)
+    if drill != None:
+        ctx.render_layer(drill, settings=RenderSettings(mirror=True))
 
     # Write png file
-    ctx.dump(img_bottom_path)
+    ctx.dump(img_back_path)
 
     ctx.clear()
 
     # Concatenate
     front = Image.open(img_front_path)
-    bottom = Image.open(img_bottom_path)
+    back = Image.open(img_back_path)
     render = Image.new('RGB', (front.width, front.height * 2 + OFFSET))
     render.paste(front, (0, 0))
-    render.paste(bottom, (0, front.height + OFFSET))
-    render.save(output_path)
-    render.show()
+    render.paste(back, (0, front.height + OFFSET))
+    render.save(img_front_back_path)
+    if show:
+        render.show()
 
     if del_tmp_folder:
         shutil.rmtree(extract_dir, ignore_errors=True)

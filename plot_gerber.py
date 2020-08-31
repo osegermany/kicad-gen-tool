@@ -1,7 +1,25 @@
+#!/usr/bin/env python
+# Licensed under the GPL v3, see LICENSE-GPLv3.md
+#
+# Fully automated Gerber and drill files generation,
+# including archiving them into a zip file.
+#
+# It can be used either as a KiCad plugin or as a CLI tool.
+# As a CLI tool, it takes 3 parameters:
+# * input KiCad PCB file
+# * output gerbers folder
+# * output gerbers ZIP file
+# Example use:
+# python plot_gerber.py \
+#     "part_x.kicad_pcb" \
+#     "build/gerbers/part_x/" \
+#     "build/gerbers/myProject-part_x-VERSION-gerbers.zip"
+
 import pcbnew
 import os
 import shutil
 import subprocess
+import click
 
 
 # SETTINGS:
@@ -14,11 +32,34 @@ INTEGER_DIGITS = 3
 MANTISSA_DIGITS = 3
 MIRROR_Y_AXIS = False
 HEADER = True
-OFFSET = pcbnew.wxPoint(0,0)
+OFFSET = pcbnew.wxPoint(0, 0)
 MERGE_PTH_NPTH = True
 DRILL_FILE = True
 MAP_FILE = False
 REPORTER = None
+
+# The CLI interface
+@click.command()
+@click.argument('kicad_pcb_file')
+@click.argument('gerbers_path')
+@click.argument('zip_file', required=0)
+def plot_gerbers(kicad_pcb_file, gerbers_path, zip_file=None):
+    """Generate Gerber and drill files from a KiCad PCB file (*.kicad_pcb)
+
+    KICAD_PCB_FILE - The path to the `*.kicad_pcb` file to generate Gerber and drill files for
+    GERBERS_PATH - The folder to generate the Gerber and drill files in
+    ZIP_FILE - The path to the *.zip file to store the Gerber and drill files in (default: None)
+    """
+    pcb = pcbnew.LoadBoard(kicad_pcb_file)
+    generate_gerbers(pcb, gerbers_path)
+    generate_drill_file(pcb, gerbers_path)
+    if zip_file != None:
+        # Remove the '.zip' suffix, as shutil adds it again,
+        # even if it is already there
+        if zip_file.endswith('.zip'):
+            zip_file = zip_file[:-4]
+        shutil.make_archive(zip_file, 'zip', gerbers_path)
+
 
 def generate_gerbers(pcb, path):
     plot_controller = pcbnew.PLOT_CONTROLLER(pcb)
@@ -104,6 +145,7 @@ def generate_drill_file(pcb, path):
     drill_writer.CreateDrillandMapFilesSet(path, DRILL_FILE, MAP_FILE, REPORTER)
 
 
+# The KiCad plugin
 class SimplePlugin(pcbnew.ActionPlugin):
     def defaults(self):
         self.name = 'Gerber Plot'
@@ -173,5 +215,11 @@ class SimplePlugin(pcbnew.ActionPlugin):
             with open(log_file, 'a') as file:
                 file.write('temp folder not deleted\nError:{}\n'.format(err))
 
-SimplePlugin().register() # Instantiate and register to Pcbnew
+
+if __name__ == "__main__":
+    # Run as a CLI script
+    plot_gerbers()
+else:
+    # Run as a KiCad plugin
+    SimplePlugin().register() # Instantiate and register to Pcbnew
 
