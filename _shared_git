@@ -1,0 +1,70 @@
+#!/usr/bin/env sh
+# A kind of mini library of useful, git related BASH code.
+# It can be included in scripts like this:
+#
+## sh
+#script_dir=`dirname "${0}"`
+#. "$script_dir/_shared_git"
+#
+## bash
+#script_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
+#source "$script_dir/_shared_git"
+
+# Tries to fetch a git-portal access-token from the local config files.
+# @param portal  name of the portal to fetch the access token of
+#                ("github"|"gitlab", default: "github")
+# Examples:
+#	$ _git_get_access_token
+#	1234567890abcdef1234567890abcdef
+#	$ _git_get_access_token "github"
+#	1234567890abcdef1234567890abcdef
+#	$ _git_get_access_token "gitlab"
+#	abd-456-34Hr65
+_git_get_access_token() {
+
+	portal="${1:-github}"
+	access_token_file=~/.config/${portal}-access-token.txt
+	if [ -e $access_token_file ]
+	then
+		access_token=$(cat $access_token_file)
+	else
+		access_token="<ACCESS_TOKEN_NOT_FOUND>"
+		>&2 echo "Access-token file does not exist: '$access_token_file'"
+	fi
+	echo -n "$access_token"
+}
+
+# Given a (GitHub like) git repo URL, returns the owner of the repo/project.
+_git_url_extract_owner() {
+
+	repo_url="$1"
+	repo_owner=$(echo "$repo_url" | sed -e 's|\.git$||' -e 's|/$||' -e 's|/[^/]*$||' -e 's|.*[:/]||')
+	echo "${repo_owner}"
+}
+
+# Given a (GitHub like) git repo URL, returns the name of the repo/project.
+_git_url_extract_name() {
+
+	repo_url="$1"
+	repo_name=$(echo "$repo_url" | sed -e 's|\.git$||' -e 's|/$||' -e 's|.*[:/]||')
+	echo "${repo_name}"
+}
+
+# Returns the name of the currently checked out branch in the git repo at $(pwd).
+_git_get_current_branch() {
+
+	#git name-rev HEAD 2> /dev/null | sed 's#HEAD\ \(.*\)#\1#'
+	git branch | grep \* | cut -d ' ' -f2
+}
+
+# Returns the remote- and branch-name of the remote tracking branch.
+# Example:
+# $ _git_remote_tracking_branch . master
+# origin/master
+_git_remote_tracking_branch() {
+
+	repo_path="$1"
+	local_branch="${2:-"$(git -C "$repo_path" rev-parse --abbrev-ref HEAD)"}"
+	remote_tracking_branch="$(git branch -vv | sed -e 's/^..//' | grep -E "^${local_branch} " | sed -e 's/^[^ ]\+ \+[^ ]\+ \+\[//' -e 's/. .*//')"
+	echo "$remote_tracking_branch"
+}
