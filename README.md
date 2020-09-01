@@ -1,10 +1,11 @@
-These are some basic scripts to help you in automatically generate files
-out of KiCad projects.
+These are scripts to help you generate files
+out of [KiCad](https://kicad-pcb.org/) (electronics) projects.
 
 More specifically, it allows you to generate:
 
-* Gerber & drill files
-* PNG renders of the Gerber files
+* [Gerber](https://en.wikipedia.org/wiki/Gerber_format)
+  & [drill](https://en.wikipedia.org/wiki/PCB_NC_formats) files
+* PNG renders of the PCB (made from the Gerber & drill files)
 
 ## Why should I use this?
 
