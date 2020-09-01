@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # Licensed under the GPL v3, see LICENSE-GPLv3.md
+# Originally from
+# <https://gist.github.com/aster94/bd52972ab6dbf13a44fc046b4222f7e7>
+# by <https://gist.github.com/aster94>.
 #
 # Fully automated Gerber and drill files generation,
 # including archiving them into a zip file.

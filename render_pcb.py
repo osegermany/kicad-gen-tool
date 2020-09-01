@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # Licensed under the GPL v3, see LICENSE-GPLv3.md
+# Originally from
+# <https://gist.github.com/aster94/bd52972ab6dbf13a44fc046b4222f7e7>
+# by <https://gist.github.com/aster94>.
 #
 # Fully automated rendering of a PCB from Gerber files into PNGs.
 # Optionally, rendering to SVG is also possible,
