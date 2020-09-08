@@ -149,6 +149,12 @@ def generate_drill_file(pcb, path):
 
 
 # The KiCad plugin
+#
+# NOTE
+# Kicad uses an old version of python (2.7),
+# but Cairo (a library needed to generate PNG images) is not well supported by this old python,
+# so we have to call a newer version of python which support cairo, for rendering PNGs.
+# Once the KiCad team will move to the a newer python,
 class SimplePlugin(pcbnew.ActionPlugin):
     def defaults(self):
         self.name = 'Gerber Plot'
@@ -195,9 +201,7 @@ class SimplePlugin(pcbnew.ActionPlugin):
 
         # Render an image: we need to call an external script that uses python 3
         try:
-            subprocess.check_call(['powershell','render_pcb', tmp_path, os.path.join(project_path, project_name + '.png').replace('\\','/')], shell=True)
-            # if you don't wish to have it as a exe file you could use:
-            #subprocess.check_call(['powershell', 'path_to_python3', 'path_to_render_pcb', tmp_path, os.path.join(project_path, project_name + '.png').replace('\\','/')], shell=True)
+            subprocess.check_call(['python', 'render_pcb.py', tmp_path, os.path.join(project_path, project_name).replace('\\','/')], shell=True)
         except Exception as err:
             with open(log_file, 'a') as file:
                 file.write('PCB not rendered\nError:{}\n'.format(err))
