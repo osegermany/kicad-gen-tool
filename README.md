@@ -1,3 +1,13 @@
+## Deprecation Warning!
+
+We recommend to use the formidable
+**[KiBot](https://github.com/INTI-CMNB/KiBot) tool** instead.
+
+It can generate much more then just Gerbers
+and 2D renders of the PCBs.
+
+## Introduction
+
 These are scripts to help you generate files
 out of [KiCad](https://kicad-pcb.org/) (electronics) projects.
 
