@@ -24,9 +24,9 @@ _git_get_access_token() {
 
 	portal="${1:-github}"
 	access_token_file=~/.config/${portal}-access-token.txt
-	if [ -e $access_token_file ]
+	if [ -e "$access_token_file" ]
 	then
-		access_token=$(cat $access_token_file)
+		access_token=$(cat "$access_token_file")
 	else
 		access_token="<ACCESS_TOKEN_NOT_FOUND>"
 		>&2 echo "Access-token file does not exist: '$access_token_file'"
