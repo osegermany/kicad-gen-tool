@@ -7,23 +7,17 @@
 # Dependencies:
 # $ pip install pcb-tools
 
-
 # Exit immediately on each error and unset variable;
 # see: https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 #set -Eeuo pipefail
 set -Eeu
-
-echo "DEPRECATED: Use kibot instead!"
-exit 1
 
 script_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # shellcheck source=./_shared_git
 #source "$script_dir/_shared_git"
 
 # initial default values
-APP_NAME="Gerber Generator"
-plot_gerber_py="${script_dir}/plot_gerber.py"
-render_pcb_py="${script_dir}/render_pcb.py"
+APP_NAME="KiCad Output Generator"
 
 function print_help() {
 
@@ -104,44 +98,16 @@ mkdir -p "$gen_src_root"
 mkdir -p "$gerbers_root"
 mkdir -p "$assets_root"
 
-# Recursive KiCad PCB file search
-# (with wall-clock time meassurement)
-# (all tracked and untracked, un(git)ignored files
-#for pcb in {**,.}/*.kicad_pcb
-time \
-	( git -C "$root_dir_abs" status --short \
-		| grep '^?' \
-		| cut -d\  -f2- \
-		&& git -C "$root_dir_abs" ls-files ) \
-	| sort -u \
-	| ( xargs -d '\n' -- stat -c%n 2>/dev/null  ||: ) \
-	| grep "\.kicad_pcb\$" \
-	| while read -r pcb
+for fi in *.sch *.lib *.dcm *.pro *.kibot.yaml fp-info-cache sym-lib-table Makefile
 do
-	pcb="${pcb#\.\/}"
-	base_name="$(basename --suffix=".kicad_pcb" "$pcb")"
-	dir_name="$(dirname "$pcb")"
-	dir_name="${dir_name#\.\/}"
-	# Recreate generated file-name
-	pcb_gen="${gen_src_root}/${pcb}"
-	# Fail if generated version does not exist
-	if [ ! -f "$pcb_gen" ]
+	if [ -f "$fi" ]
 	then
-		>&2 echo "WARNING: Generated PCB version not found: '$pcb_gen'"
-		exit 1
+		cp "$fi" "$gen_src_root/"
 	fi
-	gerbers_dir="${gerbers_root}/${dir_name}/$base_name"
-	assets_dir="${assets_root}/${dir_name}"
-	dir_name_flat="$(echo "$dir_name" | sed -e 's|^./||' -e 's|/|-|')"
-	gerbers_file="${gerbers_root}/${project_name}-${dir_name_flat}-${base_name}-gerbers-${project_version}-${date}.zip"
-	render_base_path="${assets_dir}/$base_name"
-	mkdir -p "$gerbers_dir"
-	mkdir -p "$assets_dir"
-
-	echo "Generating Gerber and drill files for '$pcb' ..."
-	python "$plot_gerber_py" "$pcb_gen" "$gerbers_dir" "$gerbers_file"
-
-	echo "Generating PNG renders of PCB (from Gerber files) for '$base_name' ..."
-	python "$render_pcb_py" "$gerbers_file" "$render_base_path"
 done
+
+cd "$gen_src_root"
+
+time make
+
 echo "done."
