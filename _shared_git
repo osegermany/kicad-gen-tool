@@ -63,7 +63,7 @@ _git_get_current_branch() {
 # origin/master
 _git_remote_tracking_branch() {
 
-	repo_path="$1"
+	repo_path="${1:-.}"
 	local_branch="${2:-"$(git -C "$repo_path" rev-parse --abbrev-ref HEAD)"}"
 	remote_tracking_branch="$(git branch -vv | sed -e 's/^..//' | grep -E "^${local_branch} " | sed -e 's/^[^ ]\+ \+[^ ]\+ \+\[//' -e 's/. .*//')"
 	echo "$remote_tracking_branch"
