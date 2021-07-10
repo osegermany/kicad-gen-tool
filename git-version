@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Copyright (C) 2020, Robin Vobruba <hoijui.quaero@gmail.com>
-# Licensed under the GPL v3, see LICENSE-GPLv3.md.
+
+# SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 #
 # See the output of "$0 -h" for details.
 
