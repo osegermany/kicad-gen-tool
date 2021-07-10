@@ -13,6 +13,9 @@
 #set -Eeuo pipefail
 set -Eeu
 
+echo "DEPRECATED: Use kibot instead!"
+exit 1
+
 script_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # shellcheck source=./_shared_git
 #source "$script_dir/_shared_git"
