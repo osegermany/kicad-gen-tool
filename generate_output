@@ -25,7 +25,7 @@ render_pcb_py="${script_dir}/render_pcb.py"
 function print_help() {
 
 	script_name="$(basename "$0")"
-	echo "${APP_NAME} - Generates Gerber, drill files and renders,"
+	echo "$APP_NAME - Generates Gerber, drill files and renders,"
 	echo "with a KiCad PCB file as input."
 	echo "NOTE: This script depends on 2 python scripts and their dependencies."
 	echo
@@ -47,10 +47,10 @@ function print_help() {
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
-	arg="${1}"
+	arg="$1"
 	shift # $2 -> $1, $3 -> $2, ...
 
-	case "${arg}" in
+	case "$arg" in
 		-h|--help)
 			print_help
 			exit 0
@@ -68,7 +68,7 @@ do
 			shift # past argument
 			;;
 		*) # non-/unknown option
-			POSITIONAL+=("${arg}") # save it in an array for later
+			POSITIONAL+=("$arg") # save it in an array for later
 			;;
 	esac
 done
@@ -97,9 +97,9 @@ then
 	exit 1
 fi
 
-mkdir -p "${gen_src_root}"
-mkdir -p "${gerbers_root}"
-mkdir -p "${assets_root}"
+mkdir -p "$gen_src_root"
+mkdir -p "$gerbers_root"
+mkdir -p "$assets_root"
 
 # Recursive KiCad PCB file search
 # (with wall-clock time meassurement)

@@ -17,7 +17,7 @@ empty_on_error=false
 print_help() {
 
 	script_name="$(basename "$0")"
-	echo "${APP_NAME} - Compiles a git based version string for the project."
+	echo "$APP_NAME - Compiles a git based version string for the project."
 	echo "It is based on 'git describe'"
 	echo
 	echo "Usage:"
@@ -36,10 +36,10 @@ print_help() {
 POSITIONAL=()
 while [[ $# -gt 0 ]]
 do
-	arg="${1}"
+	arg="$1"
 	shift # $2 -> $1, $3 -> $2, ...
 
-	case "${arg}" in
+	case "$arg" in
 		-h|--help)
 			print_help
 			exit 0
