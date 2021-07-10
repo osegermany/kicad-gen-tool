@@ -12,15 +12,13 @@
 #set -Eeuo pipefail
 set -Eeu
 
-echo "DEPRECATED: Use python var replacer instead!"
-exit 1
-
 script_dir=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 # shellcheck source=./_shared_git
 source "$script_dir/_shared_git"
 
 # initial default values
 APP_NAME="PCB Enricher"
+python_replacer_script="$script_dir/kicad_replace_project_variables.py"
 
 function print_help() {
 
@@ -172,13 +170,16 @@ do
 	echo " '$pcb' -> '${pcb_gen#"${root_dir}/"}' ..."
 	printf "\twith additional values:\n"
 	printf "\t%-24s = '%s'\n" "SOURCE_FILE_PATH" "$source_file_path"
-	sed \
-		-e 's|(gr_text PROJECT_REPO_URL |(gr_text '"$project_repo"' |' \
-		-e 's/(gr_text PROJECT_NAME /(gr_text '"$project_name"' /' \
-		-e 's/(gr_text PROJECT_VERSION /(gr_text '"$project_version"' /' \
-		-e 's/(gr_text PROJECT_VERSION_DATE /(gr_text '"$project_version_date"' /' \
-		-e 's/(gr_text PROJECT_BUILD_DATE /(gr_text '"$project_build_date"' /' \
-		-e 's|(gr_text SOURCE_FILE_PATH |(gr_text '"$source_file_path"' |' \
-		"$pcb" > "$pcb_gen"
+	python3 \
+		"$python_replacer_script" \
+		"$pcb" \
+		"$pcb_gen" \
+		"PROJECT_REPO_URL=$project_repo" \
+		"PROJECT_NAME=$project_name" \
+		"PROJECT_VERSION=$project_version" \
+		"PROJECT_VERSION_DATE=$project_version_date" \
+		"PROJECT_BUILD_DATE=$project_build_date" \
+		"SOURCE_FILE_PATH=$source_file_path" \
+		--verbose
 done
 echo "done."
