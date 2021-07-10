@@ -54,7 +54,18 @@ _git_url_extract_name() {
 _git_get_current_branch() {
 
 	#git name-rev HEAD 2> /dev/null | sed 's#HEAD\ \(.*\)#\1#'
-	git branch | grep \* | cut -d ' ' -f2
+	_branch="$(git branch | grep "[*]" | cut -d ' ' -f2)"
+	if [ "$_branch" = "(HEAD" ]
+	then
+		_branch="NONE"
+	fi
+	echo "$_branch"
+}
+
+_git_local_branch() {
+
+	repo_path="${1:-.}"
+	git -C "$repo_path" rev-parse --abbrev-ref HEAD
 }
 
 # Returns the remote- and branch-name of the remote tracking branch.
@@ -64,7 +75,9 @@ _git_get_current_branch() {
 _git_remote_tracking_branch() {
 
 	repo_path="${1:-.}"
-	local_branch="${2:-"$(git -C "$repo_path" rev-parse --abbrev-ref HEAD)"}"
-	remote_tracking_branch="$(git branch -vv | sed -e 's/^..//' | grep -E "^${local_branch} " | sed -e 's/^[^ ]\+ \+[^ ]\+ \+\[//' -e 's/. .*//')"
-	echo "$remote_tracking_branch"
+	local_branch="${2:-"$(_git_local_branch "$repo_path")"}"
+	git -C "$repo_path" branch -vv \
+		| sed -e 's/^..//' \
+		| grep -E "^${local_branch} " \
+		| sed -e 's/^[^ ]\+ \+[^ ]\+ \+\[//' -e 's/. .*//'
 }
