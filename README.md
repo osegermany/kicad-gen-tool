@@ -4,6 +4,13 @@ SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 SPDX-License-Identifier: CC0-1.0
 -->
 
+[![License: GPL-3.0-or-later](
+https://img.shields.io/badge/License-GPL_3-blue.svg)](
+https://www.gnu.org/licenses/gpl-3.0.html)
+[![REUSE status](
+https://api.reuse.software/badge/github.com/osegermany/kicad-pcb-generate-doc-tool)](
+https://api.reuse.software/info/github.com/osegermany/kicad-pcb-generate-doc-tool)
+
 # DEPRECATION Warning
 
 We recommend to use the formidable
