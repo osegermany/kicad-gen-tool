@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2021 Robin Vobruba <hoijui.quaero@gmail.com>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-## Deprecation Warning!
+# DEPRECATION Warning
 
 We recommend to use the formidable
 **[KiBot](https://github.com/INTI-CMNB/KiBot) tool** instead.
