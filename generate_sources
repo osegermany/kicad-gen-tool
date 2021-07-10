@@ -87,7 +87,7 @@ build_root="${root_dir}/build"
 gen_src_root="${build_root}/gen-src"
 vcs_branch="$(git -C "$root_dir_abs" rev-parse --abbrev-ref HEAD)"
 vcs_remote_tracking_branch="$(_git_remote_tracking_branch "$root_dir" "$vcs_branch")"
-vcs_remote="$(echo "$vcs_remote_tracking_branch" | sed -e 's|/.*$||')"
+vcs_remote="${vcs_remote_tracking_branch%/*}"
 project_repo="${project_repo:-$( (git -C "$root_dir_abs" remote -v || echo "") \
 	| grep \
 		-e '^'"$vcs_remote"'[[:space:]].* (fetch)$' \
