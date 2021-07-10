@@ -145,9 +145,11 @@ printf "\t%-24s = '%s'\n" "PROJECT_BUILD_DATE"   "$project_build_date"
 echo
 
 # Recursive KiCad PCB file search
+# (with wall-clock time meassurement)
 # (all tracked and untracked, un(git)ignored files
 #for pcb in {**,.}/*.kicad_pcb
-( git -C "$root_dir_abs" status --short \
+time \
+	( git -C "$root_dir_abs" status --short \
 		| grep '^?' \
 		| cut -d\  -f2- \
 		&& git -C "$root_dir_abs" ls-files ) \
